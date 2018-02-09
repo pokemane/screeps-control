@@ -1,0 +1,9 @@
+@startuml boot
+main --> kernel: construct new Kernel
+loop while kernel.stillUnderCpuLimit() && kernel.AnyProcessesLeftToRun()
+
+  kernel --> kernel: runNextProcess()
+
+end
+kernel --> main: kernel.shutdown
+@enduml

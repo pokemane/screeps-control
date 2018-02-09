@@ -17,7 +17,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
     }
   }
 
-  const tower = Game.getObjectById("5a76151794691c21b840f833") as StructureTower;
+  const tower = Game.getObjectById("5a790015cef0cd6328281942") as StructureTower;
   if (tower) {
         const closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
             filter: (structure) => structure.hits < structure.hitsMax
@@ -56,7 +56,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
     } else if (upgraders.length < 1) {
       const newName = "upgrade" + Game.time;
       console.log("spawning new upgrader");
-      Game.spawns[SPAWN_NAME].spawnCreep(creepBody, newName, {memory : {role: "upgrader"} as CreepMemory});
+      Game.spawns[SPAWN_NAME].spawnCreep([WORK, CARRY, MOVE], newName, {memory : {role: "upgrader"} as CreepMemory});
     } else if (builders.length < 2) {
       const newName = "build" + Game.time;
       console.log("spawning new builder");
@@ -64,7 +64,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
     }
   }
 
-  const SOURCE1 = Game.spawns[SPAWN_NAME].pos.findClosestByRange(FIND_SOURCES) as Source;
+  const sources = Game.spawns[SPAWN_NAME].room.find(FIND_SOURCES_ACTIVE) as Source[];
+  const SOURCE1 = sources[0];
   const controller = Game.spawns[SPAWN_NAME].room.controller as StructureController;
   const SOURCE2 = controller.pos.findClosestByRange(FIND_SOURCES) as Source;
   for (const name in Game.creeps) {
