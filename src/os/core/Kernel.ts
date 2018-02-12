@@ -1,5 +1,7 @@
 import { Process } from "os/core/Process";
+import { RoomEnergyManager } from "../processes/room/RoomEnergyManagerProcess";
 import { RoomManagerProcess } from "../processes/room/RoomManagerProcess";
+import { RoomStaticDataManager } from "../processes/room/RoomStaticDataManagerProcess";
 import { InitProcess } from "../processes/system/InitProcess";
 import { MemoryManagerProcess } from "../processes/system/MemoryManagerProcess";
 import { StatsManagerProcess } from "../processes/system/StatsManagerProcess";
@@ -9,7 +11,9 @@ import { LogMsgType, Priority } from "./Constants";
 export const processTypes = {
 init: InitProcess,
 memoryManager: MemoryManagerProcess,
+roomEnergyManager: RoomEnergyManager,
 roomManager: RoomManagerProcess,
+roomStaticDataManager: RoomStaticDataManager,
 statsManager: StatsManagerProcess,
 suspension: SuspensionProcess
 } as {[type: string]: any};

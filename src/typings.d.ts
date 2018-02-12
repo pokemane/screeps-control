@@ -26,7 +26,7 @@ interface RoomMetaData {
 }
 
 interface RoomManager extends RoomMetaData {
-  //todo
+  roomDataSet: boolean;
 }
 
 interface CreepMetaData {
@@ -71,4 +71,6 @@ interface CreepBase {
 
 interface MetaData {
   roomManager: RoomManager;
+  staticRoomData: RoomMetaData;
+  roomEnergyManager: RoomMetaData;
 }

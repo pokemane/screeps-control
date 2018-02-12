@@ -32,6 +32,28 @@ export class InitProcess extends Process {
         {}
       );
     }
+
     // ---------------------------------------- room management processes
-  }
+
+    _.forEach(Game.rooms, (room: Room) => {
+      const procName = "roomManager-" + room.name;
+      if (!room.controller || !room.controller.my) {
+        return;
+      }
+      if (this.kernel.hasProcess(procName)) {
+        return;
+      }
+      this.kernel.addProcess(
+        "roomManager",
+        procName,
+        Priority.HIGHEST,
+        {
+          roomDataSet: false,
+          roomName: room.name
+        } as MetaData["roomManager"]
+      );
+    });
+
+  } // end run()
+
 }

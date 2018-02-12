@@ -1,6 +1,6 @@
+import { Priority } from "os/core/Constants";
+import { Kernel } from "os/core/Kernel";
 import { Process } from "os/core/Process";
-import { Priority } from "../../core/Constants";
-import { Kernel } from "../../core/Kernel";
 
 export class RoomManagerProcess extends Process {
 
@@ -19,10 +19,9 @@ export class RoomManagerProcess extends Process {
   }
 
   public run() {
-    throw new Error("RoomManager not fully implemented yet!");
-
-    /* const room = Game.rooms[this.metaData.roomName];
+    const room = Game.rooms[this.metaData.roomName];
     if (room && room.controller && (room.controller!).my) {
+
       // placeholders for task-specific processes
       const energyManagerName = "roomEnergyManager-" + this.metaData.roomName;
       if (!this.kernel.hasProcess(energyManagerName)) {
@@ -34,7 +33,24 @@ export class RoomManagerProcess extends Process {
           false
         );
       }
-    } */
+
+      // --------------------------------------------------------- static data manager
+      if (!this.metaData.roomDataSet) {
+        const staticDataManagerName = "roomStaticDataManager-" + this.metaData.roomName;
+        if (!this.kernel.hasProcess(staticDataManagerName)) {
+          this.spawnChildProcess(
+            "roomStaticDataManager",
+            staticDataManagerName,
+            Priority.HIGHEST,
+            {roomName: this.metaData.roomName},
+            false
+          );
+          this.metaData.roomDataSet = true;
+        }
+      }
+
+    }
+
   }
 
 }
