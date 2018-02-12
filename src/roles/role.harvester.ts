@@ -18,7 +18,9 @@ export const roleHarvester = {
     }
     if (creep.memory.harvesting) {
       if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(source, {visualizePathStyle: {stroke: "#ffaa00"}});
+        creep.moveTo(source, {
+          visualizePathStyle: {stroke: "#ffaa00"}
+        });
       }
     } else {
       const targets = creep.room.find(FIND_STRUCTURES, {
@@ -31,18 +33,18 @@ export const roleHarvester = {
           }
       });
       if (targets.length) {
-        targets.sort((a, b) => {
-          if (a.structureType === STRUCTURE_SPAWN || b.structureType === STRUCTURE_CONTAINER) {
+        const droptarget = _.min(targets, (structure) => {
+          if (structure.structureType === STRUCTURE_SPAWN) {
             return -1;
-          } else if (a.structureType === STRUCTURE_CONTAINER || b.structureType === STRUCTURE_SPAWN) {
+          } else if (structure.structureType === STRUCTURE_CONTAINER) {
             return 1;
           } else {
             return 0;
           }
           });
 
-        if (creep.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-          creep.moveTo(targets[0], {visualizePathStyle: {stroke: "#ffaa00"}});
+        if (creep.transfer(droptarget, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+          creep.moveTo(droptarget, {visualizePathStyle: {stroke: "#ffaa00"}});
         }
       } else {
         // no targets to dump energy into

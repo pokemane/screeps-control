@@ -1,6 +1,7 @@
 "main" should just initialize the kernel and tell it to run the next process while we've still got CPU and processes to run, then "shut down" the kernel at the end of the tick.
 
 kernel has a process table, schedules the processes by priority, and manages/records how much CPU we've used so far this tick.
+may also handle suspension at end of tick in shutdown.
 
 init - spawn essential/progenitor processes for that tick.
   - memory management
@@ -13,7 +14,21 @@ room managers - manage room needs and mechanics, spawns subprocesses:
   - energy management
   - spawn management
   - construction management
-  - conflict management
+  - conflict/army management
   - room memory data management
 
+energy manager - energy distribution and gathering
+  -
 
+spawn manager - spawn structure, creep spawn queues, pairs creeps+lifecycle
+
+construction management - manages builds based on RCL, GCL, etc
+
+conflict manager - watches for incursions, decides when to attack, and coordinates defense/offense measures
+
+room memory data manager - updates room memory content infrequently or event-based ([de]construction events)
+
+CREEPS
+
+lifecycle types:
+  -

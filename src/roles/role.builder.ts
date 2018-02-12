@@ -30,22 +30,17 @@ export const roleBuilder = {
               structure.structureType === STRUCTURE_SPAWN && structure.energy > 250) )
               || (structure.structureType === STRUCTURE_CONTAINER &&
                 _.sum(structure.store) > 0); }});
+
       if (gatherTargets.length) {
-        // console.log(`${creep.name} found ${gatherTargets.length} targets to gather from`);
-        gatherTargets.sort((a, b) => {
-          if (a.structureType === STRUCTURE_SPAWN) {
-              return 1;
+        const target = _.max(gatherTargets, (structure) => {
+          if (structure.structureType === STRUCTURE_SPAWN) {
+            return -1;
+          } else if (structure.structureType === STRUCTURE_CONTAINER) {
+            return 1;
           } else {
-              if (a.structureType === STRUCTURE_CONTAINER) {
-                  return -1;
-              } else {
-                  return 0;
-              }
+            return 0;
           }
-        });
-      }
-      if (gatherTargets.length) {
-        const target = gatherTargets[0];
+          });
         creep.room.visual.circle(target.pos.x, target.pos.y);
         if (!(creep.pos.isNearTo(target))) {
           creep.moveTo(target, {visualizePathStyle: {stroke: "#ffffff"}});

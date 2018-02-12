@@ -2,10 +2,19 @@
 declare enum ProcessType {
   init = "init",
   memoryManager = "memoryManager",
+  statsManager = "statsManager",
+}
+
+declare enum LogMsgType {
+  info,
+  trace,
+  debug,
+  warn,
+  error
 }
 
 interface SerializedProcess {
-  name: String;
+  name: string;
   priority: number;
   metadata: object;
   suspend: boolean;
@@ -14,6 +23,7 @@ interface SerializedProcess {
 
 // object information interfaces
 
+// basic room meta data
 interface RoomMetaData {
   roomName: string;
 }
@@ -29,6 +39,7 @@ interface BasicObjectInfo {
   id: string;
 }
 
+// extends BasicObjectInfo
 interface SpawnObjectInfo extends BasicObjectInfo {
   spawning: number;
   spawnName: string;
@@ -57,3 +68,9 @@ interface CreepBase {
   maxExtensionCount?: number;
 }
 
+interface SysLogItem {
+  processName: string;
+  message: string;
+  msgType: LogMsgType;
+  cpu: number;
+}
