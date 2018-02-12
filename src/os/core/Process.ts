@@ -27,11 +27,11 @@ export abstract class Process {
     this.priority = entry.priority;
     this.suspend = entry.suspend;
     this.hasAlreadyRun = false;
-
+    // the default metadata assignment for Processes that don't take care of it themselves
     this.setMetaData(entry.metadata);
     if (entry.parent !== "") {
       this.parent = this.kernel.getProcessByName(entry.parent);
-}
+    }
   }
 
   public abstract run(): void;
@@ -95,4 +95,5 @@ export abstract class Process {
   protected setMetaData(meta: object) {
     this.metaData = meta;
   }
+
 }

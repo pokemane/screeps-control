@@ -2,7 +2,14 @@ type ProcessTypes =
   "init"
   | "memoryManager"
   | "statsManager"
-  | "suspension";
+  | "suspension"
+  | "roomManager"
+  | "roomEnergyManager"
+  | "roomSpawnManager"
+  | "roomConstructionManager"
+  | "roomStaticDataManager"
+  | "roomDefenseManager";
+
 interface SerializedProcess {
   name: string;
   priority: number;
@@ -16,6 +23,10 @@ interface SerializedProcess {
 // basic room meta data
 interface RoomMetaData {
   roomName: string;
+}
+
+interface RoomManager extends RoomMetaData {
+  //todo
 }
 
 interface CreepMetaData {
@@ -56,4 +67,8 @@ interface CreepBase {
   extension?: BodyPartConstant[];
   extensionCost?: number;
   maxExtensionCount?: number;
+}
+
+interface MetaData {
+  roomManager: RoomManager;
 }

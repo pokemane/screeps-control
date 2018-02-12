@@ -1,4 +1,5 @@
 import { Process } from "os/core/Process";
+import { RoomManagerProcess } from "../processes/room/RoomManagerProcess";
 import { InitProcess } from "../processes/system/InitProcess";
 import { MemoryManagerProcess } from "../processes/system/MemoryManagerProcess";
 import { StatsManagerProcess } from "../processes/system/StatsManagerProcess";
@@ -8,6 +9,7 @@ import { LogMsgType, Priority } from "./Constants";
 export const processTypes = {
 init: InitProcess,
 memoryManager: MemoryManagerProcess,
+roomManager: RoomManagerProcess,
 statsManager: StatsManagerProcess,
 suspension: SuspensionProcess
 } as {[type: string]: any};
@@ -49,9 +51,8 @@ export class Kernel {
     }
     this.log("kernel init:", "running kernel setup");
     this.cpuLimit = this.defineCpuLimit();
-    // load processes from memory
+
     this.boot();
-    // add init process to the process list to run
   }
 
   /**

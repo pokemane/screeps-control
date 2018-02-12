@@ -2,7 +2,7 @@ import { LogMsgType, SCRIPT_VERSION } from "os/core/Constants";
 import { Process } from "os/core/Process";
 
 export class StatsManagerProcess extends Process {
-  public metaData: any = {};
+  public metaData: any;
   public type: string = "statsManager";
     public run() {
         // ---------------------- stats stuff
