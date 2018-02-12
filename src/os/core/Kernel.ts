@@ -2,16 +2,25 @@ import { Process } from "os/core/Process";
 import { InitProcess } from "../processes/system/InitProcess";
 import { MemoryManagerProcess } from "../processes/system/MemoryManagerProcess";
 import { StatsManagerProcess } from "../processes/system/StatsManagerProcess";
-import { Priority } from "./Constants";
+import { SuspensionProcess } from "../processes/system/SuspensionProcess";
+import { LogMsgType, Priority } from "./Constants";
 
 export const processTypes = {
 init: InitProcess,
 memoryManager: MemoryManagerProcess,
-statsManager: StatsManagerProcess
+statsManager: StatsManagerProcess,
+suspension: SuspensionProcess
 } as {[type: string]: any};
 
 interface ProcessTable {
   [name: string]: Process;
+}
+
+interface SysLogItem {
+  processName: string;
+  message: string;
+  msgType: LogMsgType;
+  cpu: number;
 }
 
 /**
@@ -51,7 +60,7 @@ export class Kernel {
   public boot() {
     this.loadProcessTable();
     // init process needs no metadata
-    this.addProcess(ProcessType.init, "init", Priority.FIRST, {});
+    this.addProcess("init", "init", Priority.FIRST, {});
     // todo other stuff
   }
 
@@ -70,7 +79,7 @@ export class Kernel {
     // tslint:disable-next-line:prefer-const
     let kernel = this;
     _.forEach(Memory.os.processTable, (entry: any) => {
-      if (ProcessType[entry.type]) {
+      if (processTypes[entry.type]) {
         kernel.processTable[entry.name] = new processTypes[entry.type](entry, kernel);
       } else {
         kernel.log("Load process table", "Tried loading process with invalid type: " + entry.name, LogMsgType.error);
@@ -99,7 +108,7 @@ export class Kernel {
         this.log(processToRun.name, "Error: " + e, LogMsgType.error);
       }
     }
-    this.log("next process", "finished process => " + processToRun.name, LogMsgType.debug);
+    this.log("next process", "finished process => " + processToRun.name, LogMsgType.trace);
     processToRun.hasAlreadyRun = true;
   }
 
@@ -115,6 +124,14 @@ export class Kernel {
     }
     const name = this.sortedProcesses.shift()!;
     return this.processTable[name!];
+  }
+
+  public hasProcess(name: string) {
+    return (!!this.getProcessByName(name));
+  }
+
+  public getProcessByName(name: string): any {
+    return this.processTable[name];
   }
 
   /**
@@ -144,7 +161,8 @@ export class Kernel {
    * @param {*} meta metadata of new process
    * @param {string} [parent] optional parent of new process
    */
-  public addProcess<T extends ProcessType>(processType: T, name: string, priority: number, meta: any, parent?: string) {
+  // tslint:disable-next-line:max-line-length
+  public addProcess<T extends ProcessTypes>(processType: T, name: string, priority: number, meta: any, parent?: string) {
     this.processTable[name] = new processTypes[processType]({
       metadata: meta,
       name,

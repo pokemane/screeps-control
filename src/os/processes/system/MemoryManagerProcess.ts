@@ -1,16 +1,16 @@
-import { SCRIPT_VERSION } from "os/core/Constants";
+import { LogMsgType, SCRIPT_VERSION } from "os/core/Constants";
 import { Process } from "os/core/Process";
 
 export class MemoryManagerProcess extends Process {
   public metaData: any;
 
-  public type = ProcessType.memoryManager;
+  public type = "memoryManager";
 
   public run() {
 
-    if (!Memory.spacebot.version) {
-      Memory.spacebot.version = SCRIPT_VERSION;
-    } else if (Memory.spacebot.version !== SCRIPT_VERSION) {
+    if (!Memory.os.version) {
+      Memory.os.version = SCRIPT_VERSION;
+    } else if (Memory.os.version !== SCRIPT_VERSION) {
       // probably do some kind of version parsing to do memory format migrations,
       // or just dump all running/cached processes and start new :^)
     }
@@ -22,6 +22,6 @@ export class MemoryManagerProcess extends Process {
       }
     }
 
-    this.suspend = 100;
+    this.suspend = 4;
   }
 }

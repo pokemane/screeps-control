@@ -1,9 +1,9 @@
-import { SCRIPT_VERSION } from "os/core/Constants";
+import { LogMsgType, SCRIPT_VERSION } from "os/core/Constants";
 import { Process } from "os/core/Process";
 
 export class StatsManagerProcess extends Process {
   public metaData: any = {};
-  public type: ProcessType = ProcessType.statsManager;
+  public type: string = "statsManager";
     public run() {
         // ---------------------- stats stuff
       if (!Memory.stats) { Memory.stats = {}; }
@@ -33,5 +33,6 @@ export class StatsManagerProcess extends Process {
           }
         });
       }
+      this.suspend = 2;
     }
 }

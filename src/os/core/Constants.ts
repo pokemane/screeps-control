@@ -9,3 +9,11 @@ export class Priority {
 }
 
 export const SCRIPT_VERSION: string = "0.0.1";
+
+export enum LogMsgType {
+  info = 0,
+  trace = 1,
+  debug = 2,
+  warn = 3,
+  error = 4
+}

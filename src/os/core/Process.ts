@@ -10,7 +10,7 @@ export abstract class Process {
   public priority: number;
   public completed: boolean = false;
   public abstract metaData: any;
-  public abstract type: ProcessType;
+  public abstract type: string;
   public parent: Process | undefined;
   public hasAlreadyRun: boolean;
 
@@ -29,24 +29,27 @@ export abstract class Process {
     this.hasAlreadyRun = false;
 
     this.setMetaData(entry.metadata);
+    if (entry.parent !== "") {
+      this.parent = this.kernel.getProcessByName(entry.parent);
+}
   }
 
-  public run() {
-    // todo
-  }
+  public abstract run(): void;
 
   /**
    * resume
    */
   public resumeProcess() {
-    // todo
+    this.suspend = false;
   }
 
   /**
-   * suspend
+   * resume parent
    */
-  public suspendProcess() {
-    // todo
+  public resumeParent() {
+    if (this.parent) {
+      this.parent.resumeProcess();
+    }
   }
 
   /**
@@ -80,7 +83,7 @@ export abstract class Process {
    * @param suspendParent whether to suspend the parent during the execution of the child process
    */
   // tslint:disable-next-line:max-line-length
-  public spawnChildProcess<T extends ProcessType>(processType: T, name: string, priority: number, meta: any, suspendParent: boolean = false) {
+  public spawnChildProcess<T extends ProcessTypes>(processType: T, name: string, priority: number, meta: any, suspendParent: boolean = false) {
     this.kernel.addProcess(processType, name, priority, meta, this.name);
 
     if (suspendParent) {

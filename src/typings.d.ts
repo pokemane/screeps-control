@@ -1,24 +1,14 @@
-
-declare enum ProcessType {
-  init = "init",
-  memoryManager = "memoryManager",
-  statsManager = "statsManager",
-}
-
-declare enum LogMsgType {
-  info,
-  trace,
-  debug,
-  warn,
-  error
-}
-
+type ProcessTypes =
+  "init"
+  | "memoryManager"
+  | "statsManager"
+  | "suspension";
 interface SerializedProcess {
   name: string;
   priority: number;
   metadata: object;
-  suspend: boolean;
-  parent: string | undefined;
+  suspend: boolean | number | string;
+  parent: string;
 }
 
 // object information interfaces
@@ -66,11 +56,4 @@ interface CreepBase {
   extension?: BodyPartConstant[];
   extensionCost?: number;
   maxExtensionCount?: number;
-}
-
-interface SysLogItem {
-  processName: string;
-  message: string;
-  msgType: LogMsgType;
-  cpu: number;
 }
