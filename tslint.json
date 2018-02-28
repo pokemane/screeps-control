@@ -4,8 +4,9 @@
   ],
   "rules": {
     "forin": false,
-    "interface-name": [true, "never-prefix"],
+    "interface-name": [true, "always-prefix"],
     "member-ordering": [false],
+    "object-literal-sort-keys": [false],
     "no-console": [false],
     "no-namespace": [true, "allow-declarations"],
     "trailing-comma": [true, {"multiline": "never", "singleline": "never"}],

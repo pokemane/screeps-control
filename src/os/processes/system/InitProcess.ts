@@ -1,7 +1,8 @@
-import { LogMsgType, Priority, SCRIPT_VERSION } from "os/core/Constants";
-import { Process } from "os/core/Process";
 
-export class InitProcess extends Process {
+import { LogLevel, Priority, SCRIPT_VERSION } from "os/core/Constants";
+import { BaseProcess } from "os/core/Process";
+
+export class InitProcess extends BaseProcess {
   public metaData: any;
   public type = "init";
 
@@ -50,7 +51,7 @@ export class InitProcess extends Process {
         {
           roomDataSet: false,
           roomName: room.name
-        } as MetaData["roomManager"]
+        } as IMetaData["roomManager"]
       );
     });
 

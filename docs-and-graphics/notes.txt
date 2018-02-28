@@ -32,3 +32,22 @@ CREEPS
 
 lifecycle types:
   -
+
+ECONOMY:
+  - determine income, upkeep.
+  - spawners should reference our income rate to determine sustainable creep sizes?
+    - creep cost per tick
+    - calculate creep energy generation per tick (use best-case paths)
+  - certain actions or "capabilities" of a room should be gated behind income levels
+    - expansion
+    - active militia vs towers
+    - road count
+    - RCL upgrade speed
+
+
+NEW THOUGHTS:
+jobs!
+example:
+  - energy manager sees an open source, sends a job to the room controller to harvest it.
+  - if the job queue hasn't shrunk recently, room manager orders a creep from the spawner that matches the job type. If the spawner is currently spawning a creep of the right type for that queue, don't queue another spawn yet.
+  -

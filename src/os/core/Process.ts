@@ -1,17 +1,48 @@
-import { Kernel } from "os/core/Kernel";
+
+import { LogLevel } from "os/core/Constants";
+import { IKernel } from "os/core/Kernel";
+
+export interface IProcess {
+  name: string;
+  priority: number;
+  completed: boolean;
+  type: string;
+  parent: IProcess | undefined;
+  suspend: boolean | number | string;
+  hasAlreadyRun: boolean;
+  run(): void;
+  serialize(): ISerializedProcess;
+  resumeProcess(): void;
+  resumeParent(): void;
+}
+
+export interface ISerializedProcess {
+  name: string;
+  priority: number;
+  metadata: object;
+  suspend: boolean | number | string;
+  parent: string;
+}
 /**
  * Process prototype
+ * TODO: use templating and mapped types and stuff to better define the metadata and stuff.
+ * eg BaseProcess<M in keyof MetaData>
+ *   metaData: M
  *
+ * @export
+ * @abstract
+ * @class BaseProcess
+ * @implements {Process}
  */
-export abstract class Process {
+export abstract class BaseProcess implements IProcess {
 
-  public kernel: Kernel;
+  protected kernel: IKernel;
   public name: string;
   public priority: number;
   public completed: boolean = false;
-  public abstract metaData: any;
+  protected abstract metaData: any;
   public abstract type: string;
-  public parent: Process | undefined;
+  public parent: IProcess | undefined;
   public hasAlreadyRun: boolean;
 
   // number is used for # of ticks to suspend, decremented each tick
@@ -21,7 +52,7 @@ export abstract class Process {
   /**
    * rebuild the process from serialized data
    */
-  constructor(entry: SerializedProcess, kernel: Kernel) {
+  constructor(entry: ISerializedProcess, kernel: IKernel) {
     this.kernel = kernel;
     this.name = entry.name;
     this.priority = entry.priority;
@@ -55,9 +86,9 @@ export abstract class Process {
   /**
    * serialize the process and its metadata to be stored until
    * the scheduler deterimines that the process should run again
-   * @returns {SerializedProcess} the serialized process
+   * @returns {ISerializedProcess} the serialized process
    */
-  public serialize(): SerializedProcess {
+  public serialize(): ISerializedProcess {
     let parentProcess = "";
 
     if (this.parent) {
@@ -71,7 +102,7 @@ export abstract class Process {
       priority: this.priority,
       suspend: this.suspend,
       type: this.type
-    } as SerializedProcess;
+      } as ISerializedProcess;
   }
 
   /**
@@ -83,13 +114,17 @@ export abstract class Process {
    * @param suspendParent whether to suspend the parent during the execution of the child process
    */
   // tslint:disable-next-line:max-line-length
-  public spawnChildProcess<T extends ProcessTypes>(processType: T, name: string, priority: number, meta: any, suspendParent: boolean = false) {
+  protected spawnChildProcess<T extends ProcessTypes>(processType: T, name: string, priority: number, meta: any, suspendParent: boolean = false) {
     this.kernel.addProcess(processType, name, priority, meta, this.name);
 
     if (suspendParent) {
-      // who's blocking me?
+      // block on child process?
       this.suspend = name;
     }
+  }
+
+  protected log(message: string, msgType: LogLevel = LogLevel.debug, processName: string = this.name) {
+    this.kernel.log(processName, message, msgType);
   }
 
   protected setMetaData(meta: object) {

@@ -1,32 +1,45 @@
-import { Process } from "os/core/Process";
-import { RoomEnergyManager } from "../processes/room/RoomEnergyManagerProcess";
-import { RoomManagerProcess } from "../processes/room/RoomManagerProcess";
-import { RoomStaticDataManager } from "../processes/room/RoomStaticDataManagerProcess";
-import { InitProcess } from "../processes/system/InitProcess";
-import { MemoryManagerProcess } from "../processes/system/MemoryManagerProcess";
-import { StatsManagerProcess } from "../processes/system/StatsManagerProcess";
-import { SuspensionProcess } from "../processes/system/SuspensionProcess";
-import { LogMsgType, Priority } from "./Constants";
 
-export const processTypes = {
+import { LogLevel, Priority } from "os/core/Constants";
+import { IProcess, ISerializedProcess } from "os/core/Process";
+import { RoomEnergyManager } from "os/processes/room/EnergyManagerProcess";
+import { RoomManagerProcess } from "os/processes/room/RoomControllerProcess";
+import { SpawnManagerProcess } from "os/processes/room/SpawnManagerProcess";
+import { RoomStaticDataManager } from "os/processes/room/StaticDataManagerProcess";
+import { InitProcess } from "os/processes/system/InitProcess";
+import { MemoryManagerProcess } from "os/processes/system/MemoryManagerProcess";
+import { StatsManagerProcess } from "os/processes/system/StatsManagerProcess";
+import { SuspensionProcess } from "os/processes/system/SuspensionProcess";
+
+const processTypes = {
 init: InitProcess,
 memoryManager: MemoryManagerProcess,
 roomEnergyManager: RoomEnergyManager,
 roomManager: RoomManagerProcess,
+roomSpawnManager: SpawnManagerProcess,
 roomStaticDataManager: RoomStaticDataManager,
 statsManager: StatsManagerProcess,
 suspension: SuspensionProcess
-} as {[type: string]: any};
+} as {[name: string]: any};
 
-interface ProcessTable {
-  [name: string]: Process;
-}
-
-interface SysLogItem {
+interface ISysLogItem {
   processName: string;
   message: string;
-  msgType: LogMsgType;
+  msgType: LogLevel;
   cpu: number;
+}
+
+export interface IProcessTable {
+  [name: string]: IProcess;
+}
+
+export interface IKernel {
+  processTable: IProcessTable;
+  shutdown(): void;
+  runNextProcess(): void;
+  getProcessByName(name: string): any;
+  addProcess<T extends ProcessTypes>(processType: T, name: string, priority: number, meta: any, parent?: string): void;
+  hasProcess(name: string): boolean;
+  log(processName: string, message: string, msgType: number): void;
 }
 
 /**
@@ -39,12 +52,12 @@ interface SysLogItem {
  *
  * The kernel will use a priority-based scheduler.  Other strategies may be employed if the need arises.
  */
-export class Kernel {
+export class KernelSG implements IKernel {
 
   private cpuLimit: number;
-  public processTable: ProcessTable = {};
+  public processTable: IProcessTable = {};
   private sortedProcesses: string[] = [];
-  private sysLog: SysLogItem[] = [];
+  private sysLog: ISysLogItem[] = [];
 
   /**
    * @constructor
@@ -62,7 +75,7 @@ export class Kernel {
   /**
    * perform startup actions
    */
-  public boot() {
+  protected boot() {
     this.loadProcessTable();
     // init process needs no metadata
     this.addProcess("init", "init", Priority.FIRST, {});
@@ -75,27 +88,26 @@ export class Kernel {
   public shutdown() {
     const numProcsRunThisTick = this.saveProcessTable();
 
-    this.log("kernel final", "Processes count: " + numProcsRunThisTick, LogMsgType.info);
-    this.log("kernel final", "Total CPU used: " + Game.cpu.getUsed(), LogMsgType.info);
+    this.log("shutdown", "Processes count: " + numProcsRunThisTick, LogLevel.info);
+    this.log("shutdown", "Total CPU used: " + Game.cpu.getUsed(), LogLevel.info);
     console.log(this.buildSysLog());
   }
 
-  public loadProcessTable() {
+  protected loadProcessTable() {
     // tslint:disable-next-line:prefer-const
     let kernel = this;
     _.forEach(Memory.os.processTable, (entry: any) => {
       if (processTypes[entry.type]) {
         kernel.processTable[entry.name] = new processTypes[entry.type](entry, kernel);
       } else {
-        kernel.log("Load process table", "Tried loading process with invalid type: " + entry.name, LogMsgType.error);
+        kernel.log("Load process table", "Tried loading process with invalid type: " + entry.name, LogLevel.error);
       }
     });
   }
 
-  public saveProcessTable(): number {
-    // tslint:disable-next-line:prefer-const
-    let processList: SerializedProcess[] = [];
-    _.forEach(this.processTable, (entry: Process) => {
+  protected saveProcessTable(): number {
+    const processList: ISerializedProcess[] = [];
+    _.forEach(this.processTable, (entry: IProcess) => {
       if (!entry.completed) {
         processList.push(entry.serialize());
       }
@@ -110,18 +122,18 @@ export class Kernel {
       try {
         processToRun.run();
       } catch (e) {
-        this.log(processToRun.name, "Error: " + e, LogMsgType.error);
+        this.log(processToRun.name, "Error: " + e, LogLevel.error);
       }
     }
-    this.log("next process", "finished process => " + processToRun.name, LogMsgType.trace);
+    this.log("scheduler", "next process => " + processToRun.name, LogLevel.trace);
     processToRun.hasAlreadyRun = true;
   }
 
-  public getHighestPrioProcess() {
+  protected getHighestPrioProcess() {
     if (!this.sortedProcesses.length) {
       // if we haven't scheduled anything since a process was added
       // or the kernel was last started
-      const toRunProcesses = _.filter(this.processTable, (proc: Process) => {
+      const toRunProcesses = _.filter(this.processTable, (proc: IProcess) => {
         return (!proc.hasAlreadyRun && proc.suspend === false);
       });
       const sorted = _.sortBy(toRunProcesses, "priority").reverse();
@@ -142,7 +154,7 @@ export class Kernel {
   /**
    * Defines the CPU limit for the kernel
    */
-  public defineCpuLimit() {
+  protected defineCpuLimit() {
 
     // Simulator has no limit
     if (Game.cpu.limit === undefined) {
@@ -175,7 +187,6 @@ export class Kernel {
       priority,
       suspend: false
     }, this);
-
     this.sortedProcesses = [];
   }
 
@@ -183,7 +194,7 @@ export class Kernel {
    * do we have any processes left to run?
    */
   public anyProcessesLeftToRun() {
-    return _.filter(this.processTable, (proc: Process) => {
+    return _.filter(this.processTable, (proc: IProcess) => {
       return (!proc.hasAlreadyRun && proc.suspend === false);
     }).length > 0;
   }
@@ -194,7 +205,7 @@ export class Kernel {
    * @param message the message to log
    * @param msgType debug, warning, etc
    */
-  public log(processName: string, message: string, msgType: LogMsgType = LogMsgType.debug) {
+  public log(processName: string, message: string, msgType: LogLevel = LogLevel.debug) {
     this.sysLog.push({
       cpu: Game.cpu.getUsed(),
       message,
@@ -216,33 +227,35 @@ export class Kernel {
       "   <th>CPU</th>" +
       "</tr>";
 
-    _.forEach(this.sysLog, (msg: SysLogItem) => {
+    _.forEach(this.sysLog, (msg: ISysLogItem) => {
       /**
        * if we have a logging level explicitly defined
        * AND
-       * the message type is higher than the selected level,
-       * return nothing
+       * the message type is lower than the selected level,
+       * skip the message.
+       * The goal is to always show errors and general info,
+       * but to selectively show warn/debug/trace.
        */
-      if ("loggingLevel" in Memory.os && msg.msgType > Memory.os.loggingLevel) {
+      if ("loggingLevel" in Memory.os && msg.msgType < Memory.os.loggingLevel) {
         return;
       }
 
       let color = "";
       switch (msg.msgType) {
-        case LogMsgType.info:
+        case LogLevel.info:
           color = "green";
           break;
-        case LogMsgType.info:
-          color = "00edff";
+        case LogLevel.trace:
+          color = "#00edff";
           break;
-        case LogMsgType.debug:
+        case LogLevel.debug:
           color = "#e4e4e4";
           break;
-        case LogMsgType.warn:
-          color = "ffbb00";
+        case LogLevel.warn:
+          color = "#ffbb00";
           break;
-        case LogMsgType.error:
-          color = "ff4500";
+        case LogLevel.error:
+          color = "#ff4500";
           break;
         default:
           color = "#fffff";

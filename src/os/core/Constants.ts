@@ -1,19 +1,19 @@
-export class Priority {
-  public static FIRST: number = 10;
-  public static HIGHEST: number = 9;
-  public static HIGH: number = 7;
-  public static MEDIUM: number = 5;
-  public static LOW: number = 3;
-  public static LOWEST: number = 1;
-  public static LAST: number = 0;
+export enum Priority {
+  FIRST = 10,
+  HIGHEST = 9,
+  HIGH = 7,
+  MEDIUM = 5,
+  LOW = 3,
+  LOWEST = 1,
+  LAST = 0
 }
 
 export const SCRIPT_VERSION: string = "0.0.1";
 
-export enum LogMsgType {
-  info = 0,
-  trace = 1,
-  debug = 2,
-  warn = 3,
-  error = 4
+export enum LogLevel {
+  trace = 0,
+  debug = 1,
+  warn = 2,
+  error = 3,
+  info = 4
 }

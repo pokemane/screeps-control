@@ -1,18 +1,18 @@
 
-// type shim for nodejs' `require()` syntax
 declare const require: (module: string) => any;
 
-
-interface CreepMemory {
-    role: string
-    harvesting?: boolean;
-    upgrading?: boolean;
-    building?: boolean;
+declare interface CreepMemory {
+  role: string;
+  harvesting?: boolean;
+  upgrading?: boolean;
+  building?: boolean;
+  _trav?: TravelData;
+  _travel?: TravelData;
 }
 
-interface RoomMemory {
-  sources: {[sourceId: string]: SourceObjectInfo};
-  spawns: SpawnObjectInfo[];
+declare interface RoomMemory {
+  sources: {[sourceId: string]: ISourceObjectInfo};
+  spawns: ISpawnObjectInfo[];
   rcl?: number;
+  avoid?: number;
 }
-

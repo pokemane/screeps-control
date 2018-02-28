@@ -1,7 +1,7 @@
-import { LogMsgType, SCRIPT_VERSION } from "os/core/Constants";
-import { Process } from "os/core/Process";
+import { LogLevel, SCRIPT_VERSION } from "os/core/Constants";
+import { BaseProcess } from "os/core/Process";
 
-export class MemoryManagerProcess extends Process {
+export class MemoryManagerProcess extends BaseProcess {
   public metaData: any;
 
   public type = "memoryManager";

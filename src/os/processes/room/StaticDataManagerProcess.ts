@@ -1,11 +1,12 @@
-import { Kernel } from "os/core/Kernel";
-import { Process } from "os/core/Process";
 
-export class RoomStaticDataManager extends Process {
-  public metaData: MetaData["staticRoomData"];
+import { IKernel } from "os/core/Kernel";
+import { BaseProcess, ISerializedProcess } from "os/core/Process";
+
+export class RoomStaticDataManager extends BaseProcess {
+  public metaData: IMetaData["roomStaticDataManager"];
   public type = "roomStaticDataManager";
 
-  constructor(entry: SerializedProcess, kernel: Kernel) {
+  constructor(entry: ISerializedProcess, kernel: IKernel) {
     super(entry, kernel);
     // TS is throwing me a "Property has no initializer and is not definitely assigned in the constructor."
     // when I don't do this explicitly in the constructor.  For subclasses of Process,
@@ -13,7 +14,7 @@ export class RoomStaticDataManager extends Process {
     // The reason I need to do the assignment/typing in the first place is because
     // I want TS to help me out with metadata contents and typings.
     // TODO: figure out if this is an issue, and how to fix it!
-    this.metaData = entry.metadata as MetaData["staticRoomData"];
+    this.metaData = entry.metadata as IMetaData["roomStaticDataManager"];
   }
   public run(): void {
     const room = Game.rooms[this.metaData.roomName];

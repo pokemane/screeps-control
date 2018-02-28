@@ -12,11 +12,12 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch-main": "rollup -cw --dest main",
     "watch-pserver": "rollup -cw --dest pserver",
-    "watch-sim": "rollup -cw --dest sim"
+    "watch-sim": "rollup -cw --dest sim",
+    "compile": "rollup -c"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/screepers/screeps-typescript-starter.git"
+    "url": "git+https://github.com/pokemane/screeps-control.git"
   },
   "author": "",
   "license": "Unlicense",
@@ -38,7 +39,6 @@
     "typescript": "^2.6.1"
   },
   "dependencies": {
-    "screeps-profiler": "^2.0.1",
     "source-map": "^0.6.1"
   }
 }
