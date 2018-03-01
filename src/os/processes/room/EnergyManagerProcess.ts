@@ -1,4 +1,5 @@
 
+import { Priority } from "os/core/Constants";
 import { IKernel } from "os/core/Kernel";
 import { BaseProcess, ISerializedProcess } from "os/core/Process";
 import JobHelper from "os/libs/JobHelper";
@@ -25,6 +26,38 @@ export class RoomEnergyManager extends BaseProcess {
      * Start with 1 or 2 per source-container set.
      */
     const myController = this.parent as RoomManagerProcess;
+    const src: ISourceObjectInfo = {
+      x: 30,
+      y: 21,
+      roomName: "W8N3",
+      id: "26f20772347f879",
+      isMinedBy: {
+        haulers: 0,
+        miners: 0
+      }
+    };
+    const drop: IBasicObjectInfo = {
+      x: 29,
+      y: 26,
+      roomName: "W8N3",
+      id: "5a964c6d6e5b04630fb114fa"
+    };
+    const newjob = JobHelper.createHarvestJob(this.name, "harvest", Priority.HIGH, src, drop);
+    if (!myController.hasJobCount(newjob)) {
+      myController.addJob(newjob);
+    } else {
+      // myController.getHighestPriorityJob("harvest");
+    }
+
+    // TODO: when a creep goes to harvest from a Source, have it "reserve" the Source.
+    // Should probably do this as soon as the creep notices that it's trying to move toward the Source.
+    /* Reserve:
+    *   Adds a "TTL" value to the Source (e.g. 40 per creep/job).  Energy Manager decrements this per tick.
+    *   Energy Manager targets a certain "life level" of the Source and pushes more/fewer jobs depending on level.
+    * Unreserve:
+    *   Removes same "TTL" value from Source counter.  Energy Manager still decrements this counter.
+    *   Unreserving a Source increases the "queue pressure" on the harvesting tasks.
+    */
 
   }
 

@@ -1,5 +1,5 @@
+import { Priority } from "os/core/Constants";
 import { BaseProcess } from "os/core/Process";
-import { Priority } from "../core/Constants";
 
 export abstract class LifeCycleProcess extends BaseProcess {
 /**
@@ -9,7 +9,7 @@ export abstract class LifeCycleProcess extends BaseProcess {
  * @param {number} [range=1]
  * @memberof LifeCycleProcess
  */
-public switchToMoveProcess(target: BasicObjectInfo, range = 1) {
+public switchToMoveProcess(target: IBasicObjectInfo, range = 1) {
     this.spawnChildProcess(
       "move",
       "move-" + this.metaData.creepName,
@@ -44,7 +44,7 @@ public switchToMoveProcess(target: BasicObjectInfo, range = 1) {
  * @param {BasicObjectInfo} target
  * @memberof LifeCycleProcess
  */
-public switchToDropoffProcess(target: BasicObjectInfo) {
+public switchToDropoffProcess(target: IBasicObjectInfo) {
     this.spawnChildProcess(
       "dropoff",
       "dropoff-" + this.metaData.creepName,

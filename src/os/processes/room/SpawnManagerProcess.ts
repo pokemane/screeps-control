@@ -1,6 +1,7 @@
 
 import { IKernel } from "os/core/Kernel";
 import { BaseProcess, ISerializedProcess } from "os/core/Process";
+import { RoomManagerProcess } from "./RoomControllerProcess";
 
 export class SpawnManagerProcess extends BaseProcess {
   protected metaData: IMetaData["roomSpawnManager"];
@@ -12,6 +13,9 @@ export class SpawnManagerProcess extends BaseProcess {
   }
 
   public run(): void {
-    throw new Error("Method not implemented.");
+    // dfa
+
+    const myController = this.parent as RoomManagerProcess;
+    this.log(myController.numTotalJobs().toString());
   }
 }

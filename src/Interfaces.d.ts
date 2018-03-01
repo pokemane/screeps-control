@@ -11,6 +11,11 @@ type ProcessTypes =
 //  | "roomDefenseManager"
 ;
 
+type CreepRoles =
+  "civilian"
+  | "upgrader"
+  | "militia";
+
 type JobTypes =
   "harvest"
   | "haul"
@@ -65,7 +70,7 @@ interface IBasicJobStep {
 }
 
 interface IJobProviderProcess {
-  managerBase: IBasicJob[];
+  jobQueues: { [type in JobTypes]?: IBasicJob[] };
 }
 
 // extends BasicObjectInfo

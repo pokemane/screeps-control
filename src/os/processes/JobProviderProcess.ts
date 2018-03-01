@@ -4,8 +4,10 @@ import { BaseProcess, IProcess, ISerializedProcess } from "os/core/Process";
 
 export interface IJobProvider {
   getHighestPriorityJob(type: JobTypes): IBasicJob | boolean;
+  getJobFromRoles(roles: JobTypes[]): IBasicJob | boolean;
   addJob<J extends IBasicJob>(job: J): void;
-  hasJobCount<J extends IBasicJob>(job: J): boolean | number;
+  hasJobCount<J extends IBasicJob>(job: J): number;
+  numTotalJobs(): number;
   // TODO: maybe use deep-equal to check for duplicate jobs?
   // lodash: _.filter(queue, _.matches(jobToCheckIfDupe));
 }
@@ -42,6 +44,25 @@ export abstract class JobProviderProcess extends BaseProcess implements IJobProv
     if (this.jobQueues[type]!.length < 1) { return false; } // no jobs, TODO: ask for some from other rooms or global
     return this.jobQueues[type]!.shift()!;
   }
+/**
+ * get a random job from the given list of job queues
+ *
+ * @param {JobTypes[]} roles
+ * @returns {(boolean | IBasicJob)}
+ * @memberof JobProviderProcess
+ */
+public getJobFromRoles(roles: JobTypes[]): boolean | IBasicJob {
+    let result: IBasicJob | boolean = false;
+    let count: number = 0;
+    _.forEach(roles, (role) => {
+      if (this.jobQueues[role] !== undefined) {
+        if (Math.random() < 1 / ++count) {
+          result = this.getHighestPriorityJob(role);
+        }
+      }
+    });
+    return result;
+  }
 
   /**
    * Presorted insert of specified job into correct queue based on job type
@@ -59,16 +80,26 @@ export abstract class JobProviderProcess extends BaseProcess implements IJobProv
 
   /**
    * Counts the number of identical jobs already in the queue.
-   * Returns `false` if no identical jobs exist in this provider.
+   * Will return 0 if the queue doesn't exist
    *
    * @template J extends IBasicJob
    * @param {J} job
    * @returns {(boolean | number)}
    * @memberof JobProviderProcess
    */
-  public hasJobCount<J extends IBasicJob>(job: J): boolean | number {
-    if (this.jobQueues[job.type] === undefined) { return false; }
+  public hasJobCount<J extends IBasicJob>(job: J): number {
+    if (this.jobQueues[job.type] === undefined) { return 0; }
     return _.filter(this.jobQueues[job.type]!, _.matches(job)).length;
+  }
+
+  public numTotalJobs(): number {
+    let numJobs: number = 0;
+    _.forIn(this.jobQueues, (queue, key) => {
+      _.forIn(queue!, (element, type) => {
+        ++numJobs;
+      });
+    });
+    return numJobs;
   }
 
   protected loadJobTable(): void {
@@ -80,7 +111,7 @@ export abstract class JobProviderProcess extends BaseProcess implements IJobProv
   }
 
   public serialize(): ISerializedProcess {
-    this.metaData.jobQueue = this.jobQueues;
+    this.metaData.jobQueues = this.jobQueues;
     return super.serialize();
   }
 }

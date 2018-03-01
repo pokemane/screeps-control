@@ -50,7 +50,8 @@ export class InitProcess extends BaseProcess {
         Priority.HIGHEST,
         {
           roomDataSet: false,
-          roomName: room.name
+          roomName: room.name,
+          jobQueues: {}
         } as IMetaData["roomManager"]
       );
     });

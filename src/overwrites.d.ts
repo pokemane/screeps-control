@@ -2,12 +2,9 @@
 declare const require: (module: string) => any;
 
 declare interface CreepMemory {
-  role: string;
-  harvesting?: boolean;
-  upgrading?: boolean;
-  building?: boolean;
-  _trav?: TravelData;
-  _travel?: TravelData;
+  roles: JobTypes[];
+  job?: IBasicJob;
+  idleTicks?: number;
 }
 
 declare interface RoomMemory {
