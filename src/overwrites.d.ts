@@ -8,6 +8,7 @@ declare interface CreepMemory {
 }
 
 declare interface RoomMemory {
+  ttl: number;
   sources: {[sourceId: string]: ISourceObjectInfo};
   spawns: ISpawnObjectInfo[];
   rcl?: number;

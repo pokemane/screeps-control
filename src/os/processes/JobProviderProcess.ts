@@ -3,13 +3,18 @@ import { IKernel } from "os/core/Kernel";
 import { BaseProcess, IProcess, ISerializedProcess } from "os/core/Process";
 
 export interface IJobProvider {
-  getHighestPriorityJob(type: JobTypes): IBasicJob | boolean;
-  getJobFromRoles(roles: JobTypes[]): IBasicJob | boolean;
+  // ===============
+  // creep interface
+  takeJob(creepName: string, roles: JobTypes[], canWorkRemote: boolean): IBasicJob | boolean;
+  completeJob(creepName: string): void;
+  failJob(creepName: string): void;
+  // ===============
+  // else interface
+  getHighestPriorityJobForRole(type: JobTypes): IBasicJob | boolean;
+  getRandomJobFromRoles(roles: JobTypes[]): IBasicJob | boolean;
   addJob<J extends IBasicJob>(job: J): void;
   hasJobCount<J extends IBasicJob>(job: J): number;
   numTotalJobs(): number;
-  // TODO: maybe use deep-equal to check for duplicate jobs?
-  // lodash: _.filter(queue, _.matches(jobToCheckIfDupe));
 }
 
 /**
@@ -26,10 +31,28 @@ export interface IJobProvider {
 export abstract class JobProviderProcess extends BaseProcess implements IJobProvider {
 
   protected jobQueues: { [type in JobTypes]?: IBasicJob[] } = {};
+  protected inProgressJobs: { [creepName: string]: IBasicJob} = {};
 
   constructor(entry: ISerializedProcess, kernel: IKernel) {
     super(entry, kernel);
     this.loadJobTable();
+  }
+
+  public takeJob(creepName: string, roles: JobTypes[], canWorkRemote: boolean = false): IBasicJob | boolean {
+    const newjob = this.getRandomJobFromRoles(roles);
+    if (!newjob && !canWorkRemote) { return false; }
+    this.inProgressJobs[creepName] = newjob as IBasicJob;
+    return newjob;
+  }
+
+  public completeJob(creepName: string): void {
+    delete this.inProgressJobs[creepName];
+  }
+
+  public failJob(creepName: string): void {
+    const failedJob = this.inProgressJobs[creepName];
+    this.addJob(failedJob);
+    delete this.inProgressJobs[creepName];
   }
 
   /**
@@ -39,7 +62,7 @@ export abstract class JobProviderProcess extends BaseProcess implements IJobProv
    * @returns {(IBasicJob | boolean)}
    * @memberof JobProviderProcess
    */
-  public getHighestPriorityJob(type: JobTypes): IBasicJob | boolean {
+  public getHighestPriorityJobForRole(type: JobTypes): IBasicJob | boolean {
     if (this.jobQueues[type] === undefined) { return false; }
     if (this.jobQueues[type]!.length < 1) { return false; } // no jobs, TODO: ask for some from other rooms or global
     return this.jobQueues[type]!.shift()!;
@@ -51,13 +74,13 @@ export abstract class JobProviderProcess extends BaseProcess implements IJobProv
  * @returns {(boolean | IBasicJob)}
  * @memberof JobProviderProcess
  */
-public getJobFromRoles(roles: JobTypes[]): boolean | IBasicJob {
+public getRandomJobFromRoles(roles: JobTypes[]): IBasicJob | boolean {
     let result: IBasicJob | boolean = false;
     let count: number = 0;
     _.forEach(roles, (role) => {
       if (this.jobQueues[role] !== undefined) {
         if (Math.random() < 1 / ++count) {
-          result = this.getHighestPriorityJob(role);
+          result = this.getHighestPriorityJobForRole(role);
         }
       }
     });

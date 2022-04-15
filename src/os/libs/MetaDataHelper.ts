@@ -15,7 +15,7 @@ export default class MetaDataHelper {
       y: spawn.pos.y,
       id: spawn.id,
       roomName: spawn.pos.roomName,
-      spawning: spawn.spawning.remainingTime,
+      spawning: spawn.spawning === null ? NaN : spawn.spawning.remainingTime,
       spawnName: spawn.name
     };
   }

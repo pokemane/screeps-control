@@ -50,15 +50,18 @@ jobs!
 example:
   - energy manager sees an open source, sends a job to the room controller to harvest it.
   - if the job queue hasn't shrunk recently, room manager orders a creep from the spawner that matches the job type. If the spawner is currently spawning a creep of the right type for that queue, don't queue another spawn yet.
-  -
+  - or maybe do, but only up to a certain spawn queue length.
+  - The overall goal with "jobs" is to equip Creeps to carry out predefined job steps in a "stateless" fashion such that the job steps can be chained together arbitrarily according to the needs of the job's creator.  This is in lieu of passing callbacks as the job-steps array elements, and is a little more straightforward and probably more readable for me in the end.
+  - see https://www.rabbitmq.com/getstarted.html for more info on this sort of thing, specifically "competing consumers" pattern, but without ACKs and callbacks, focusing on being configuration-based.
+
 anyway the concept is, I'm using "job queues" to direct my creeps, and want to try to use "queue pressure" or queue size to help govern creep population and stuff
 example:
 RoomEnergyManager detects an unharvested Source, builds and sends a HarvestJob to the RoomController.
 After a while the RoomController, seeing that its HarvestJobQueue hasn't decreased in size recently, tells the SpawnManager to queue up a creep capable of meeting that demand (creeps are gonna be general-purpose for now except Military and Haulers I think, idk completely yet)
 Creep gets spawned, and its lifecycle/brain process asks its current Room's RoomController for a job fitting its "resume"
 RoomController picks a random job out of the queues the Creep is capable of tackling, but let's assume it's only Energy for now.  RCL1, gathering only, nice and simple
-Creep gets his very first Job.  Step 1:  Harvest that Source.  Creep either tells the Room's EnergyManager to "reserve" the Source as soon as it starts moving toward it, or it just does it when it gets there to start mining.  Either way.
-the ReserveSource call adds some number (e.g. 40) to a counter for that Source in the Room's EnergyManager.  Every tick the Source counter is below a certain threshold, the EnergyManager attempts to queue up another Harvest job (it checks for duplicates before it enqueues though)
+Creep gets his very first Job.  Step 1:  Harvest that Source.  Creep calls the ReserveSource method on the EnergyManager whenever it starts harvesting from a Source.
+the ReserveSource call adds some number (e.g. 40, probably dependent on the creep's capability? like number of WORKs and MOVEs for instance) to a counter for that Source in the Room's EnergyManager.  Every tick the Source counter is below a certain threshold, the EnergyManager attempts to queue up another Harvest job (it checks for duplicates before it enqueues though)
 When the creep stops doing the Harvest job for some reason (repeat counter ran out or it dies) it calls an "UnReserve" which tells the EnergyManager to subtract the same number as above from that counter, increasing queue pressure immediately, thereby reducing the latency a bit between creep deaths
 ideally, it'd be "tuned" based on travel distance and stuff
 like the Energy Manager would determine how many ticks it'd take to send a replacement (spawn time + travel time, but "spawn time" is outside the scope of what the Energy Manager is concerned with) and remove that many from the Source Counter.(edited)
@@ -67,3 +70,15 @@ Seems like I can expand it to building and upgrading pretty easily, maybe just n
 e.g. scale the counter threshold for Building projects off the total number of construction sites in the room
 have to be careful with that though, don't want to wreck my economy spawning Builders and bankrupt myself
 so the EnergyManager and/or SpawnManager (or some higher level Economy manager process?) should take care of managing the energy expenditure rate of the room.  Could actually make that part of the RoomManager, or at least have the RoomManager consult an Economist, and ask what its creeps should be doing... i.e. "hey are we in the black yet?  No?  Okay, curb the building projects" and would bias toward handing out Harvest jobs when possible, also probably limiting the number of "consumer" tasks like building.   Could also have this tie into the "hey do we have the cash flow to do that big RCL6 bunker project yet?" decision tree, which means that there shouldn't be an excess of Building jobs when we're not explicitly prepared for them... just attrition from Repair, if the Towers don't cover it.
+
+The biggest problem I see at the moment is this:
+How do I stop job creators from creating "duplicate" jobs while a creep is currently in the middle of performing the task, or is still en route?
+  - does the job stay in the job table or map and have a creep assigned to it, where the job is only deleted/removed when it's actually completed by the creep?
+  - RoomController holds 1 queue of jobs per job type and 1 "table" of in-progress jobs
+    - queue is ordered, just like now
+    - table contains creepID:job pairs
+    - "hasJob" checks both queue and unordered table?
+    - repeating tasks stick in the table til the creep dies, then get "completed" and then re-queued by the job creator
+    - MAYBE: room controller has a set of "limits" for each job type for how many are allowed to be in-progress, editable through consultation with the Economist and Building Director type things.  e.g. remote mining, big building projects
+      - if we have enough energy income, just spawn more creeps to handle the jobs
+      - if we don't have the money, ask for help from global director

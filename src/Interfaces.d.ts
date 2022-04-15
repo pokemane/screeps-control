@@ -27,7 +27,8 @@ type JobActions =
   | "build"
   | "pickup"
   | "dropoff"
-  | "upgrade";
+  | "upgrade"
+  | "move";
 
 // object information interfaces
 

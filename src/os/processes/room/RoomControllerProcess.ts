@@ -49,7 +49,7 @@ export class RoomManagerProcess extends JobProviderProcess {
       }
 
       // --------------------------------------------------------- static data manager
-      if (!this.metaData.roomDataSet) {
+      if (!this.metaData.roomDataSet || !--Memory.rooms[this.metaData.roomName].ttl) {
         const staticDataManagerName = "roomStaticDataManager-" + this.metaData.roomName;
         if (!this.kernel.hasProcess(staticDataManagerName)) {
           this.spawnChildProcess(
@@ -62,7 +62,6 @@ export class RoomManagerProcess extends JobProviderProcess {
           this.metaData.roomDataSet = true;
         }
       }
-
     }
 
   } // end run

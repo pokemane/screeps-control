@@ -3,6 +3,7 @@ import { Priority } from "os/core/Constants";
 import { IKernel } from "os/core/Kernel";
 import { BaseProcess, ISerializedProcess } from "os/core/Process";
 import JobHelper from "os/libs/JobHelper";
+import MetaDataHelper from "os/libs/MetaDataHelper";
 import { JobProviderProcess } from "os/processes/JobProviderProcess";
 import { RoomManagerProcess } from "os/processes/room/RoomControllerProcess";
 
@@ -29,7 +30,7 @@ export class RoomEnergyManager extends BaseProcess {
     const src: ISourceObjectInfo = {
       x: 30,
       y: 21,
-      roomName: "W8N3",
+      roomName: this.metaData.roomName,
       id: "26f20772347f879",
       isMinedBy: {
         haulers: 0,
@@ -39,8 +40,8 @@ export class RoomEnergyManager extends BaseProcess {
     const drop: IBasicObjectInfo = {
       x: 29,
       y: 26,
-      roomName: "W8N3",
-      id: "5a964c6d6e5b04630fb114fa"
+      roomName: this.metaData.roomName,
+      id: "5a9e0da46e5b04630fb1152b"
     };
     const newjob = JobHelper.createHarvestJob(this.name, "harvest", Priority.HIGH, src, drop);
     if (!myController.hasJobCount(newjob)) {

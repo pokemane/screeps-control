@@ -20,6 +20,7 @@ export class RoomStaticDataManager extends BaseProcess {
     const room = Game.rooms[this.metaData.roomName];
     room.memory.sources = {};
     room.memory.spawns = [];
+    room.memory.ttl = 50;
     const process = this;
 
     const sources = room.find(FIND_SOURCES);
